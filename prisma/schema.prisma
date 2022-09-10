@@ -1,0 +1,55 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Customer {
+  id           String  @id @default(uuid())
+  name         String
+  email        String  @unique
+  password     String
+  username     String  @unique
+  phoneNumber  String  @unique
+  refreshToken String? @db.VarChar(600)
+
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  transactions Transaction[]
+
+  @@map("customers")
+}
+
+model Transaction {
+  id         String            @id @default(uuid())
+  customer   Customer          @relation(fields: [customerId], references: [id])
+  customerId String
+  status     TransactionStatus @default(INIT)
+  amount     Float
+  gateway    PaymentGateway    @default(FLUTTERWAVE)
+  metaData   Json
+  purpose    String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("transactions")
+}
+
+enum TransactionStatus {
+  INIT
+  SUCCESS
+  FAILED
+}
+
+enum PaymentGateway {
+  FOUNTAINPAY
+  PAYSTACK
+  FLUTTERWAVE
+}
